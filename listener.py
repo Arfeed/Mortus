@@ -1,5 +1,5 @@
 import socket
-import multiprocessing
+import threading
 import sys
 
 import tomllib
@@ -90,7 +90,7 @@ class TCPListener(Listener):
 
     def start(self) -> None:
         self.run = True
-        multiprocessing.Process(target=self.listen).start()
+        threading.Thread(target=self.listen).start()
 
 
 
@@ -127,4 +127,4 @@ class UDPListener(Listener):
 
     def start(self) -> None:
         self.run = True
-        multiprocessing.Process(target=self.listen).start()
+        threading.Thread(target=self.listen).start()

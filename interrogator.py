@@ -1,6 +1,6 @@
 import struct
 import socket
-import multiprocessing
+import threading
 
 from hashlib import md5
 from datetime import datetime
@@ -12,7 +12,7 @@ class Interrogator:
         self.done_packets = []
         self.packets_queue = []
 
-    def __flags_to_str(self, flags):
+    def __flags_to_str(self, flags) -> list:
         f = {
             0x01: 'FIN', 0x02: 'SYN', 0x04: 'RST', 0x08: 'PSH',
             0x10: 'ACK', 0x20: 'URG', 0x40: 'ECE', 0x80: 'CWR'
@@ -60,7 +60,7 @@ class Interrogator:
         return {
             'seq': seq,
             'ack': ack,
-            'flags': self.__flags_to_str(flags),
+            'flags': ','.join(self.__flags_to_str(flags)),
             'tcp_header_len': tcp_header_len,
             'payload': payload
         }
@@ -79,7 +79,7 @@ class Interrogator:
         }
 
     def create_session_hash(self) -> str:
-        return md5(f"{self.get_src_ip()}-{self.get_dst_ip()}-{self.get_src_port()}-{self.get_dst_port()}").hexdigest()
+        return md5(f"{self.get_src_ip()}-{self.get_dst_ip()}-{self.get_src_port()}-{self.get_dst_port()}".encode()).hexdigest()
 
 
 #combined methods
@@ -126,4 +126,4 @@ class Interrogator:
 
     def start(self) -> None:
         self.run = True
-        multiprocessing.Process(target=self.process).start()
+        threading.Thread(target=self.process).start()

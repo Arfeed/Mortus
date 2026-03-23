@@ -2,8 +2,6 @@ from listener import TCPListener, UDPListener
 from interrogator import Interrogator
 from archiver import Archiver
 
-import queue
-
 
 
 class Manager:
@@ -13,23 +11,26 @@ class Manager:
         self.interrogator = Interrogator()
         self.archiver = Archiver()
 
-    def start(self):
-        self.common_pool = queue.Queue()
+    #syncs pools
+    def sync(self):
+        self.interrogator.packets_queue = self.tcp_listener.catched = self.udp_listener.catched
+        self.interrogator.done_packets = self.archiver.waiting_packets
 
-        self.tcp_listener.set_out_pool(self.common_pool)
-        self.udp_listener.set_out_pool(self.common_pool)
-        self.interrogator.set_pool(self.common_pool)
-        self.archiver.set_pool(self.interrogator.done_packets)
+    def start(self):
+        self.sync()
 
         self.tcp_listener.start()
         self.udp_listener.start()
         self.interrogator.start()
         self.archiver.start()
+    
+    def stop(self):
+        self.tcp_listener. run = False
+        self.udp_listener.run = False
+        self.interrogator.run = False
+        self.archiver.run = False
 
 m = Manager()
 m.start()
 
 print("Running...")
-while True:
-    input()
-    print(m.archiver.get_tcp_packets())

@@ -1,6 +1,6 @@
 import sqlite3
 import tomllib
-import multiprocessing
+import threading
 
 
 
@@ -87,11 +87,11 @@ class Archiver:
             return self.execute("SELECT * FROM udp_packets WHERE " + filter)
     
     def add_tcp_packet(self, packet : dict) -> None:
-        self.execute("INSERT INTO tcp_packets VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", tuple(packet.values()))
+        self.execute("INSERT INTO tcp_packets VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", tuple(packet.values()))
         self.db.commit()
     
     def add_udp_packet(self, packet : dict) -> None:
-        self.execute("INSERT INTO udp_packets VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)", tuple(packet.values()))
+        self.execute("INSERT INTO udp_packets VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", tuple(packet.values()))
         self.db.commit()
 
 
@@ -115,15 +115,17 @@ class Archiver:
 
 #starter func and process 
     def process_waiting(self) -> None:
+        self.initialize_db()
         try:
             while self.run:
-                packet = self.waiting_packets.pop(-1)
-                if packet['proto'] == 6:
-                    self.add_tcp_packet(packet)
-                elif packet['proto'] == 17:
-                    self.add_udp_packet(packet)
-                else:
-                    pass
+                if self.waiting_packets:
+                    packet = self.waiting_packets.pop(-1)
+                    if packet['proto'] == 6:
+                        self.add_tcp_packet(packet)
+                    elif packet['proto'] == 17:
+                        self.add_udp_packet(packet)
+                    else:
+                        pass
         except KeyboardInterrupt:
             self.run = False
         finally:
@@ -131,4 +133,4 @@ class Archiver:
     
     def start(self) -> None:
         self.run = True
-        multiprocessing.Process(target=self.process_waiting).start()
+        threading.Thread(target=self.process_waiting).start()
