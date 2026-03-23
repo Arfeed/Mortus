@@ -1,6 +1,5 @@
 import struct
 import socket
-import queue
 import multiprocessing
 
 from hashlib import md5
@@ -10,8 +9,8 @@ from datetime import datetime
 
 class Interrogator:
     def __init__(self):
-        self.done_packets = queue.Queue()
-        self.packets_queue = queue.Queue()
+        self.done_packets = []
+        self.packets_queue = []
 
     def __flags_to_str(self, flags):
         f = {
@@ -24,7 +23,7 @@ class Interrogator:
                 result.append(name)
         return result
 
-    def set_pool(self, common_queue : queue.Queue):
+    def set_pool(self, common_queue : list):
         self.packets_queue = common_queue
 
 #ip header parsing
@@ -116,11 +115,11 @@ class Interrogator:
         try:
             while self.run:
                 
-                if self.packets_queue.empty():
+                if not self.packets_queue:
                     continue
 
-                packet = self.packets_queue.get()
-                self.done_packets.put(self.get_packet_info(packet))
+                packet = self.packets_queue.pop(-1)
+                self.done_packets.append(self.get_packet_info(packet))
         
         except KeyboardInterrupt:
             self.run = False

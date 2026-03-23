@@ -12,14 +12,14 @@ class Manager:
         self.udp_listener = UDPListener()
         self.interrogator = Interrogator()
         self.archiver = Archiver()
-    
-    def start(self):
-        common_pool = queue.Queue()
 
-        self.tcp_listener.set_out_pool(common_pool)
-        self.udp_listener.set_out_pool(common_pool)
-        self.interrogator.set_pool(common_pool)
-        self.archiver.set_pool(common_pool)
+    def start(self):
+        self.common_pool = queue.Queue()
+
+        self.tcp_listener.set_out_pool(self.common_pool)
+        self.udp_listener.set_out_pool(self.common_pool)
+        self.interrogator.set_pool(self.common_pool)
+        self.archiver.set_pool(self.interrogator.done_packets)
 
         self.tcp_listener.start()
         self.udp_listener.start()

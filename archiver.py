@@ -1,15 +1,16 @@
 import sqlite3
 import tomllib
-import queue
 import multiprocessing
 
 
 
 class Archiver:
     def __init__(self):
-        self.waiting_packets = queue.Queue()
+        self.waiting_packets = []
 
+        self.set_db_path()
         self.initialize_db()
+        self.create_tables()
 
     def set_db_path(self) -> None:
         with open("mortus.toml", "rb") as f:
@@ -20,7 +21,7 @@ class Archiver:
         self.db = sqlite3.connect(self.db_path)
         self.cursor = self.db.cursor()
     
-    def set_pool(self, common_queue : queue.Queue) -> None:
+    def set_pool(self, common_queue : list) -> None:
         self.waiting_packets = common_queue
 
 #base operations
@@ -113,10 +114,10 @@ class Archiver:
 
 
 #starter func and process 
-    def process_waiting(self):
+    def process_waiting(self) -> None:
         try:
             while self.run:
-                packet = self.waiting_packets.get()
+                packet = self.waiting_packets.pop(-1)
                 if packet['proto'] == 6:
                     self.add_tcp_packet(packet)
                 elif packet['proto'] == 17:

@@ -4,7 +4,6 @@ import sys
 
 import tomllib
 import struct
-import queue
 
 
 
@@ -13,7 +12,7 @@ class Listener:
         self.ip = self.get_ip()
         self.ports = self.get_ports()
 
-        self.catched = queue.Queue()
+        self.catched = []
 
 #gets parameters from toml
     def get_ip(self) -> str:
@@ -36,7 +35,7 @@ class Listener:
     
 
 #syncs queues
-    def set_out_pool(self, common_queue : queue.Queue) -> None:
+    def set_out_pool(self, common_queue : list) -> None:
         self.catched = common_queue
 
 
@@ -62,8 +61,6 @@ class TCPListener(Listener):
     def __init__(self):
         super().__init__()
 
-        self.catched = queue.Queue()
-
         self.socket = self.__create_socket()
         self.socket.settimeout(1)
     
@@ -82,7 +79,7 @@ class TCPListener(Listener):
                 try:
                     packet, _ = self.socket.recvfrom(65535)
                     if self.check_packet(packet):
-                        self.catched.put(packet)
+                        self.catched.append(packet)
 
                 except socket.timeout:
                     continue
@@ -100,8 +97,6 @@ class TCPListener(Listener):
 class UDPListener(Listener):
     def __init__(self):
         super().__init__()
-
-        self.catched = queue.Queue()
 
         self.socket = self.__create_socket()
         self.socket.settimeout(1)
@@ -121,7 +116,7 @@ class UDPListener(Listener):
                 try:
                     packet, _ = self.socket.recvfrom(65535)
                     if self.check_packet(packet):
-                        self.catched.put(packet)
+                        self.catched.append(packet)
 
                 except socket.timeout:
                     continue
