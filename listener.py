@@ -77,16 +77,19 @@ class TCPListener(Listener):
 
 #threads func and starter
     def listen(self) -> None:
-        while self.run:
-            try:
-                packet, _ = self.socket.recvfrom(65535)
-                if self.check_packet(packet):
-                    self.catched.put(packet)
+        try:
+            while self.run:
+                try:
+                    packet, _ = self.socket.recvfrom(65535)
+                    if self.check_packet(packet):
+                        self.catched.put(packet)
 
-            except socket.timeout:
-                continue
-            
-        self.close_socket()
+                except socket.timeout:
+                    continue
+        except KeyboardInterrupt:
+            self.run = False
+        finally:
+            self.close_socket()
 
     def start(self) -> None:
         self.run = True
@@ -113,17 +116,19 @@ class UDPListener(Listener):
 
 #threads func and starter
     def listen(self) -> None:
-        while self.run:
-            try:
-                packet, _ = self.socket.recvfrom(65535)
-                if self.check_packet(packet):
-                    self.catched.put(packet)
+        try:
+            while self.run:
+                try:
+                    packet, _ = self.socket.recvfrom(65535)
+                    if self.check_packet(packet):
+                        self.catched.put(packet)
 
-            except socket.timeout:
-                continue
-            
-            
-        self.close_socket()
+                except socket.timeout:
+                    continue
+        except KeyboardInterrupt:
+            self.run = False
+        finally:
+            self.close_socket()
 
     def start(self) -> None:
         self.run = True

@@ -25,3 +25,11 @@ class Manager:
         self.udp_listener.start()
         self.interrogator.start()
         self.archiver.start()
+
+m = Manager()
+m.start()
+
+print("Running...")
+while True:
+    input()
+    print(m.archiver.get_tcp_packets())

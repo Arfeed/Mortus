@@ -113,13 +113,17 @@ class Interrogator:
 
 #starter func and process
     def process(self) -> None:
-        while self.run:
-            
-            if self.packets_queue.empty():
-                continue
+        try:
+            while self.run:
+                
+                if self.packets_queue.empty():
+                    continue
 
-            packet = self.packets_queue.get()
-            self.done_packets.put(self.get_packet_info(packet))
+                packet = self.packets_queue.get()
+                self.done_packets.put(self.get_packet_info(packet))
+        
+        except KeyboardInterrupt:
+            self.run = False
 
     def start(self) -> None:
         self.run = True

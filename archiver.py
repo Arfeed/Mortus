@@ -114,16 +114,19 @@ class Archiver:
 
 #starter func and process 
     def process_waiting(self):
-        while self.run:
-            packet = self.waiting_packets.get()
-            if packet['proto'] == 6:
-                self.add_tcp_packet(packet)
-            elif packet['proto'] == 17:
-                self.add_udp_packet(packet)
-            else:
-                pass
-        
-        self.close()
+        try:
+            while self.run:
+                packet = self.waiting_packets.get()
+                if packet['proto'] == 6:
+                    self.add_tcp_packet(packet)
+                elif packet['proto'] == 17:
+                    self.add_udp_packet(packet)
+                else:
+                    pass
+        except KeyboardInterrupt:
+            self.run = False
+        finally:
+            self.close()
     
     def start(self) -> None:
         self.run = True
