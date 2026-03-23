@@ -1,0 +1,182 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    background: #0B0F17;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    padding: 1.5rem;
+    color: #E5E9F0;
+}
+.app-container {
+    max-width: 1900px;
+    margin: 0 auto;
+    background: #0F1219;
+    border-radius: 0.5rem;
+    border: 1px solid #262C38;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+/* Шапка: лого + название */
+.header-area {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1.2rem 2rem;
+    background: #0A0D12;
+    border-bottom: 1px solid #262C38;
+}
+.logo-block {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.logo-text {
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: #F0F3FA;
+}
+.title-block h1 {
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: #F0F3FA;
+}
+.title-block p {
+    font-size: 0.75rem;
+    color: #7D859C;
+}
+.nav-badge a {
+    color: #BDC3D4;
+    text-decoration: none;
+    background: #21242c;
+    padding: 0.4rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    border: 1px solid #2A2F3C;
+    transition: 0.2s;
+}
+.nav-badge a:hover {
+    background: #1A1E28;
+    border-color: #3E4A5C;
+    color: #FFFFFF;
+}
+/* Основной контент: таблица + фильтры (справа) */
+.main-layout {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+/* Фильтры справа */
+.filters-panel {
+    width: 260px;
+    flex-shrink: 0;
+    background: #0C0F16;
+    border-radius: 0.5rem;
+    padding: 1.2rem;
+    border: 1px solid #262C38;
+    align-self: start;
+    position: sticky;
+    top: 1rem;
+}
+.filters-panel h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: #9AA2B9;
+    border-left: 3px solid #3E4A5C;
+    padding-left: 0.6rem;
+}
+.filter-group {
+    margin-bottom: 1rem;
+}
+.filter-group label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: #7D859C;
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.5px;
+}
+.filter-group input {
+    width: 100%;
+    background: #0F1219;
+    border: 1px solid #2F3543;
+    padding: 0.5rem 0.8rem;
+    border-radius: 0.5rem;
+    color: #E5E9F0;
+    font-size: 0.85rem;
+    transition: 0.2s;
+}
+.filter-group input:focus {
+    outline: none;
+    border-color: #5F7F9E;
+    box-shadow: 0 0 0 2px rgba(95, 127, 158, 0.2);
+}
+.reset-filters {
+    margin-top: 1rem;
+    width: 100%;
+    background: #21242c;
+    border: 1px solid #2A2F3C;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    color: #BDC3D4;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.reset-filters:hover {
+    background: #1A1E28;
+    border-color: #3E4A5C;
+    color: #FFFFFF;
+}
+/* Таблица */
+.table-wrapper {
+    flex: 1;
+    overflow-x: auto;
+    border-radius: 0.5rem;
+    background: #0F1219;
+    border: 1px solid #262C38;
+}
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    min-width: 1000px;
+}
+.data-table th {
+    background: #0C0F16;
+    color: #9AA2B9;
+    font-weight: 600;
+    padding: 0.9rem 0.7rem;
+    text-align: center;
+    border-bottom: 2px solid #262C38;
+    position: sticky;
+    top: 0;
+}
+.data-table td {
+    padding: 0.7rem 0.6rem;
+    text-align: center;
+    border-bottom: 1px solid #1A1E28;
+    color: #E5E9F0;
+}
+.data-table tr:hover td {
+    background-color: #11151F;
+}
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #7D859C;
+}
+@media (max-width: 900px) {
+    .main-layout {
+        flex-direction: column;
+    }
+    .filters-panel {
+        width: 100%;
+        position: static;
+    }
+}

@@ -32,5 +32,3 @@ class Manager:
 
 m = Manager()
 m.start()
-
-print("Running...")

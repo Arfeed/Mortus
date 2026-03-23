@@ -33,12 +33,7 @@ class Listener:
         except:
             return []
     
-
-#syncs queues
-    def set_out_pool(self, common_queue : list) -> None:
-        self.catched = common_queue
-
-
+    
 #closes socket properly
     def close_socket(self) -> None:
         self.socket.close()

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="stylesheet" href="../static/css/dashboard.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Mortus</title>
+    <style>
+        /* Blinking animation for attack LED */
+        @keyframes blinkRed {
+            0% { background-color: #D44C4C; opacity: 1; }
+            50% { background-color: #ff0000; opacity: 0.4; }
+            100% { background-color: #D44C4C; opacity: 1; }
+        }
+        .led.blink {
+            animation: blinkRed 0.4s step-end 3;
+        }
+        /* Ensure the LED has a base red background for attack */
+        .led.red {
+            background-color: #D44C4C;
+        }
+        /* Normal green LED */
+        .led {
+            background-color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div class="title">
+            <h1>Mortus</h1>
+        </div>
+        <div class="stats-placeholders" style="display: flex; gap: 1.5rem; font-size: 0.85rem; background: #0F1219; padding: 0.3rem 1rem; border-radius: 30px; border: 1px solid #262C38;">
+            <span>Ports count: <strong>{{ ports_count }}</strong></span>
+            <span>Most active port: <strong>{{ freq_port }}</strong></span>
+            <span>Suspect: <strong>{{ suspect }}</strong></span>
+        </div>
+        <a href="{{ url_for('eventlog') }}" class="nav-link" style="background: #0F1219; border: 1px solid #2A2F3C; border-radius: 30px; padding: 0.2rem 0.9rem; text-decoration: none; color: #BDC3D4;">Eventlog</a>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="ports-table" id="portsTable">
+            <thead>
+                <tr>
+                    <th>Port</th>
+                    <th>Indicator</th>
+                    <th>Last touch</th>
+                </tr>
+            </thead>
+            <tbody id="portsTableBody">
+                <tr>
+                    <td colspan="3" style="text-align: center;">Loading ports...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Function to blink the LED element 3 times
+    function blinkLED(ledElement) {
+        // Remove any existing blink class to restart animation
+        ledElement.classList.remove('blink');
+        // Force reflow to restart animation
+        void ledElement.offsetWidth;
+        ledElement.classList.add('blink');
+        // Remove the class after animation ends (3 iterations)
+        ledElement.addEventListener('animationend', function onEnd() {
+            ledElement.classList.remove('blink');
+            ledElement.removeEventListener('animationend', onEnd);
+        });
+    }
+
+    // Populate table with data from /api/ports
+    async function loadPorts() {
+        const tbody = document.getElementById('portsTableBody');
+        try {
+            const response = await fetch('/api/ports');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json(); // expected: [[port, under_attack, last_touch], ...]
+
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No ports data available</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = ''; // Clear loading row
+
+            data.forEach(item => {
+                // Expect each item to be an array: [port, under_attack, last_touch]
+                const port = item[0];
+                const underAttack = item[1] === 1; // 1 = under attack, else false
+                const lastTouch = item[2] || '—';
+
+                const row = document.createElement('tr');
+
+                // Port cell
+                const portCell = document.createElement('td');
+                portCell.style.fontFamily = 'monospace';
+                portCell.textContent = port;
+                row.appendChild(portCell);
+
+                // Indicator cell
+                const indicatorCell = document.createElement('td');
+                const indicatorDiv = document.createElement('div');
+                indicatorDiv.className = 'indicator';
+
+                const ledSpan = document.createElement('div');
+                ledSpan.className = 'led';
+                if (underAttack) {
+                    ledSpan.classList.add('red');   // make LED red
+                    // Blink will be triggered after adding to DOM
+                } else {
+                    ledSpan.classList.add('green');       // default green
+                }
+
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'status-text';
+                if (underAttack) {
+                    statusSpan.textContent = 'ATTACK';
+                    statusSpan.style.color = '#D44C4C';
+                } else {
+                    statusSpan.textContent = 'ONLINE';
+                    statusSpan.style.color = '#A0D6B1';
+                }
+
+                indicatorDiv.appendChild(ledSpan);
+                indicatorDiv.appendChild(statusSpan);
+                indicatorCell.appendChild(indicatorDiv);
+                row.appendChild(indicatorCell);
+
+                // Last touch cell
+                const lastTouchCell = document.createElement('td');
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'event-time';
+                timeSpan.textContent = lastTouch;
+                lastTouchCell.appendChild(timeSpan);
+                row.appendChild(lastTouchCell);
+
+                tbody.appendChild(row);
+
+                // If under attack, blink the LED after it's added to DOM
+                if (underAttack) {
+                    // Slight delay to ensure the element is rendered
+                    setTimeout(() => blinkLED(ledSpan), 10);
+                }
+            });
+        } catch (error) {
+            console.error('Failed to load ports:', error);
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">❌ Error loading ports</td></tr>';
+        }
+    }
+
+    // Start loading when page is ready
+    setInterval(loadPorts, 1500);
+</script>
+</body>
+</html>

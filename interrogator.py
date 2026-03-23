@@ -1,10 +1,9 @@
-import struct
 import socket
 import threading
 
 from hashlib import md5
 from datetime import datetime
-
+import struct
 
 
 class Interrogator:
@@ -23,8 +22,6 @@ class Interrogator:
                 result.append(name)
         return result
 
-    def set_pool(self, common_queue : list):
-        self.packets_queue = common_queue
 
 #ip header parsing
     def get_ip_header_len(self) -> int:

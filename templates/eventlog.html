@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="stylesheet" href="../static/css/eventlog.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Eventlog</title>
+</head>
+<body>
+<div class="app-container">
+    <div class="header-area">
+        <div class="logo-block">
+            <div class="logo-text">Mortus</div>
+        </div>
+        <div class="title-block">
+            <h1>Event Log</h1>
+        </div>
+        <div class="nav-badge">
+            <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="filters-panel">
+            <h3>Filters</h3>
+            <form id="filterForm" class="filter-form">
+                <div class="filter-group">
+                    <label>SRC_IP</label>
+                    <input type="text" id="filterSrcIp" placeholder="192.168.1">
+                </div>
+                <div class="filter-group">
+                    <label>DST_IP</label>
+                    <input type="text" id="filterDstIp" placeholder="10.0.0">
+                </div>
+                <div class="filter-group">
+                    <label>SRC_PORT</label>
+                    <input type="text" id="filterSrcPort" placeholder="80">
+                </div>
+                <div class="filter-group">
+                    <label>DST_PORT</label>
+                    <input type="text" id="filterDstPort" placeholder="80">
+                </div>
+                <button type="submit" class="reset-filters" id="resetFilters">Применить фильтры</button>
+            </form>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Timestamp</th>
+                        <th>Ip Header Len</th>
+                        <th>Protocol</th>
+                        <th>SRC_IP</th>
+                        <th>DST_IP</th>
+                        <th>SRC_PORT</th>
+                        <th>DST_PORT</th>
+                        <th>Session Hash</th>
+                        <th>Seq</th>
+                        <th>Ack</th>
+                        <th>Flags</th>
+                        <th>Tcp Header Len</th>
+                        <th>Payload</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="14" class="loading">Loading packets...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Store the full dataset
+    let allPackets = [];
+
+    // Column indices for filtering
+    const IDX_SRC_IP = 4;
+    const IDX_DST_IP = 5;
+    const IDX_SRC_PORT = 6;
+    const IDX_DST_PORT = 7;
+
+    // DOM elements
+    const tbody = document.getElementById('tableBody');
+    const filterSrcIp = document.getElementById('filterSrcIp');
+    const filterDstIp = document.getElementById('filterDstIp');
+    const filterSrcPort = document.getElementById('filterSrcPort');
+    const filterDstPort = document.getElementById('filterDstPort');
+    const filterForm = document.getElementById('filterForm');
+    const resetBtn = document.getElementById('resetFilters');
+
+    // Fetch data from API
+    async function fetchPackets() {
+        try {
+            const response = await fetch('/api/packets');
+            if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+            allPackets = await response.json(); // expects list of lists
+            renderTable(); // initial render
+        } catch (error) {
+            console.error('Failed to load packets:', error);
+            tbody.innerHTML = '<tr><td colspan="14" class="no-data">Failed to load packets</td></tr>';
+        }
+    }
+
+    // Render the table body
+    function renderTable() {
+        if (allPackets.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="14" class="no-data">No packets found with the specified filters or the dataset is empty</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        allPackets.forEach(row => {
+            const tr = document.createElement('tr');
+            // row is a list of 14 elements
+            row.forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell !== undefined ? cell : '';
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Start
+    setInterval(fetchPackets, 1500);
+</script>
+</body>
+</html>

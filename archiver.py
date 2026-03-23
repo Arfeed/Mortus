@@ -20,9 +20,7 @@ class Archiver:
     def initialize_db(self) -> None:
         self.db = sqlite3.connect(self.db_path)
         self.cursor = self.db.cursor()
-    
-    def set_pool(self, common_queue : list) -> None:
-        self.waiting_packets = common_queue
+
 
 #base operations
     def close(self) -> None:
@@ -86,13 +84,15 @@ class Archiver:
         else:
             return self.execute("SELECT * FROM udp_packets WHERE " + filter)
     
+
+#daemon methods
     def add_tcp_packet(self, packet : dict) -> None:
-        self.execute("INSERT INTO tcp_packets VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", tuple(packet.values()))
-        self.db.commit()
+        self.thread_cursor.execute("INSERT INTO tcp_packets VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", tuple(packet.values()))
+        self.thread_db.commit()
     
     def add_udp_packet(self, packet : dict) -> None:
-        self.execute("INSERT INTO udp_packets VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", tuple(packet.values()))
-        self.db.commit()
+        self.thread_cursor.execute("INSERT INTO udp_packets VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", tuple(packet.values()))
+        self.thread_db.commit()
 
 
 #destructible
@@ -115,7 +115,8 @@ class Archiver:
 
 #starter func and process 
     def process_waiting(self) -> None:
-        self.initialize_db()
+        self.thread_db = sqlite3.connect(self.db_path)
+        self.thread_cursor = self.db.cursor()
         try:
             while self.run:
                 if self.waiting_packets:
