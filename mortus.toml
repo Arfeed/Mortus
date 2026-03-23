@@ -1,0 +1,5 @@
+[listener]
+ports = [1998]
+
+[archiver]
+db_path = 'archiver.db'
