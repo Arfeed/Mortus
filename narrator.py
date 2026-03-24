@@ -63,15 +63,18 @@ class Narrator:
         data_udp = self.archiver.get_udp_packets()
         data = data_tcp + data_udp
 
-        frequency = {}
+        freq = {}
 
         for packet in data:
-            if packet[4] in frequency:
-                frequency[packet[4]] += 1
+            if packet[4] in freq:
+                freq[packet[4]] += 1
             else:
-                frequency[packet[4]] = 1
+                freq[packet[4]] = 1
 
-        suspect = max(frequency, key=frequency.get)
+        try:
+            suspect = max(freq, key=freq.get)
+        except ValueError:
+            suspect = ''
 
         return suspect
 
@@ -87,8 +90,13 @@ class Narrator:
                 freq[packet[7]] += 1
             else:
                 freq[packet[7]] = 1
+
+        try:
+            active = max(freq, key=freq.get)
+        except ValueError:
+            active = 0
         
-        return max(freq, key=freq.get)
+        return active
 
     def get_packets(self,  src_ip = '', dst_ip = '', src_port = '', dst_port = '') -> list[list]:
         if src_ip == '' and dst_ip == '' and src_port == '' and dst_port == '':

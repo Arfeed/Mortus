@@ -116,7 +116,7 @@ class Archiver:
 #starter func and process 
     def process_waiting(self) -> None:
         self.thread_db = sqlite3.connect(self.db_path)
-        self.thread_cursor = self.db.cursor()
+        self.thread_cursor = self.thread_db.cursor()
         try:
             while self.run:
                 if self.waiting_packets:
