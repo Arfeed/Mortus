@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 
 
 class Narrator:
-    def __init__(self, archiver : Archiver = None):
-        self.archiver = archiver
+    def __init__(self):
+        self.archiver = Archiver()
         self.format_pattern = "%Y-%m-%d %H:%M:%S"
 
         self.set_ports()
@@ -90,26 +90,70 @@ class Narrator:
         
         return max(freq, key=freq.get)
 
+    def get_packets(self,  src_ip = '', dst_ip = '', src_port = '', dst_port = '') -> list[list]:
+        if src_ip == '' and dst_ip == '' and src_port == '' and dst_port == '':
+            return self.archiver.get_tcp_packets()
+        
+        data_tcp = self.archiver.get_tcp_packets()
+        data_udp = self.archiver.get_udp_packets()
+        data = data_tcp + data_udp
 
+        valid = [el for el in [src_ip, dst_ip, src_port, dst_port] if el != '' and el != 0]
+
+        res = []
+
+        for packet in data:
+            filtred_inf = [packet[4], packet[5], packet[6], packet[7]]
+            for i, parameter in enumerate(valid):
+                if filtred_inf[i] != parameter:
+                    break
+            else:
+                res.append(packet)
+        
+        return res
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
 
+filters = []
 
-@app.route('/api/packets', methods=['GET'])
-def get_packets():
-    a = Archiver()
-    packets = list(map(list, a.get_tcp_packets()))
+global switch
+switch = False
 
+@app.route('/api/packets_tcp', methods=['GET'])
+def get_packets_tcp():
+    n = Narrator()
+    packets = n.archiver.get_tcp_packets()
+    del n
+
+    packets = list(map(list, packets))
+    for i in range(len(packets)):
+        packets[i][-1] = b64encode(packets[i][-1]).decode()
+    
+
+    return flask.jsonify(packets)
+
+@app.route('/api/packets_udp', methods=['GET'])
+def get_packets_udp():
+    n = Narrator()
+    packets = n.archiver.get_udp_packets()
+    del n
+
+    packets = list(map(list, packets))
     for i in range(len(packets)):
         packets[i][-1] = b64encode(packets[i][-1]).decode()
 
-    del a
     return flask.jsonify(packets)
+
+@app.route('/api/switch', methods=['GET'])
+def switch_mode():
+    global switch
+    switch = not switch
+    return flask.redirect(flask.url_for('eventlog'))
 
 @app.route('/api/ports', methods=['GET'])
 def get_ports():
-    n = Narrator(Archiver())
+    n = Narrator()
     formed_ports = n.form_ports()
 
     del n
@@ -119,7 +163,7 @@ def get_ports():
 
 @app.route('/', methods=['GET'])
 def dashboard():
-    n = Narrator(Archiver())
+    n = Narrator()
 
     suspect = n.get_suspect()
     active = n.get_active()
@@ -131,6 +175,6 @@ def dashboard():
 
 @app.route('/eventlog', methods=['GET'])
 def eventlog():
-    return flask.render_template('eventlog.html')
+    return flask.render_template('eventlog.html', switch=switch)
 
 app.run()

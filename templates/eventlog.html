@@ -13,9 +13,14 @@
             <div class="logo-text">Mortus</div>
         </div>
         <div class="title-block">
-            <h1>Event Log</h1>
+            {% if switch %}
+                <h1>UDP Event Log</h1>
+            {% else %}
+                <h1>TCP Event Log</h1>
+            {% endif %}
         </div>
         <div class="nav-badge">
+            <a href="{{ url_for('switch_mode') }}">Switch to {{ 'TCP' if switch else 'UDP' }}</a>
             <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
         </div>
     </div>
@@ -23,46 +28,63 @@
     <div class="main-layout">
         <div class="filters-panel">
             <h3>Filters</h3>
-            <form id="filterForm" class="filter-form">
+            <div id="filterForm" class="filter-form">
                 <div class="filter-group">
                     <label>SRC_IP</label>
-                    <input type="text" id="filterSrcIp" placeholder="192.168.1">
+                    <input id="filterSrcIp" placeholder="192.168.1">
                 </div>
                 <div class="filter-group">
                     <label>DST_IP</label>
-                    <input type="text" id="filterDstIp" placeholder="10.0.0">
+                    <input id="filterDstIp" placeholder="10.0.0.0">
                 </div>
                 <div class="filter-group">
                     <label>SRC_PORT</label>
-                    <input type="text" id="filterSrcPort" placeholder="80">
+                    <input id="filterSrcPort" placeholder="80">
                 </div>
                 <div class="filter-group">
                     <label>DST_PORT</label>
-                    <input type="text" id="filterDstPort" placeholder="80">
+                    <input id="filterDstPort" placeholder="80">
                 </div>
-                <button type="submit" class="reset-filters" id="resetFilters">Применить фильтры</button>
-            </form>
+                <button class="reset-filters" id="resetFilters" onclick="window.location.reload();">Reset Filters</button>
+            </div>
         </div>
 
         <div class="table-wrapper">
             <table class="data-table">
                 <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Timestamp</th>
-                        <th>Ip Header Len</th>
-                        <th>Protocol</th>
-                        <th>SRC_IP</th>
-                        <th>DST_IP</th>
-                        <th>SRC_PORT</th>
-                        <th>DST_PORT</th>
-                        <th>Session Hash</th>
-                        <th>Seq</th>
-                        <th>Ack</th>
-                        <th>Flags</th>
-                        <th>Tcp Header Len</th>
-                        <th>Payload</th>
-                    </tr>
+                    {% if switch %}
+                        <tr>
+                            <th>Id</th>
+                            <th>Timestamp</th>
+                            <th>Ip Header Len</th>
+                            <th>Protocol</th>
+                            <th>SRC_IP</th>
+                            <th>DST_IP</th>
+                            <th>SRC_PORT</th>
+                            <th>DST_PORT</th>
+                            <th>Session Hash</th>
+                            <th>Length</th>
+                            <th>Checksum</th>
+                            <th>Payload</th>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <th>Id</th>
+                            <th>Timestamp</th>
+                            <th>Ip Header Len</th>
+                            <th>Protocol</th>
+                            <th>SRC_IP</th>
+                            <th>DST_IP</th>
+                            <th>SRC_PORT</th>
+                            <th>DST_PORT</th>
+                            <th>Session Hash</th>
+                            <th>Seq</th>
+                            <th>Ack</th>
+                            <th>Flags</th>
+                            <th>Tcp Header Len</th>
+                            <th>Payload</th>
+                        </tr>
+                    {% endif %}
                 </thead>
                 <tbody id="tableBody">
                     <tr>
@@ -77,7 +99,12 @@
 <script>
     // Store the full dataset
     let allPackets = [];
-
+    {% if switch %} 
+        let url = '/api/packets_udp'; 
+    {% else %}
+        let url = '/api/packets_tcp'; 
+    {% endif %}
+    
     // Column indices for filtering
     const IDX_SRC_IP = 4;
     const IDX_DST_IP = 5;
@@ -93,12 +120,28 @@
     const filterForm = document.getElementById('filterForm');
     const resetBtn = document.getElementById('resetFilters');
 
+    function filter_packets() {
+        new_packets = [];
+        for (let i = 0; i < allPackets.length; i++) {
+            const packet = allPackets[i];
+
+            if (filterSrcIp.value !== '' && packet[IDX_SRC_IP] !== +filterSrcIp.value) continue; 
+            if (filterDstIp.value !== '' && packet[IDX_DST_IP] !== +filterDstIp.value) continue;
+            if (filterSrcPort.value !== '' && packet[IDX_SRC_PORT] !== +filterSrcPort.value) continue;
+            if (filterDstPort.value !== '' && packet[IDX_DST_PORT] !== +filterDstPort.value) continue;
+            
+            new_packets.push(packet);
+        }
+        allPackets = new_packets;
+    }
+
     // Fetch data from API
     async function fetchPackets() {
         try {
-            const response = await fetch('/api/packets');
+            const response = await fetch(url);
             if (!response.ok) throw new Error(`HTTP error ${response.status}`);
             allPackets = await response.json(); // expects list of lists
+            filter_packets();
             renderTable(); // initial render
         } catch (error) {
             console.error('Failed to load packets:', error);
