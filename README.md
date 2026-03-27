@@ -21,10 +21,12 @@ python manager.py
 After installation, if you want to run the built-in web interface, you should do this.\
 **WARNING: The interface only visualizes and analyzes data from the utility database. For the utility itself to work, you also need to run manager.py**
 
+## Requirements
+- Flask
+
 ## Unix\Windows
 ```
 cd Mortus
-source venv/bin/activate
 python narrator.py
 ```
 
@@ -40,4 +42,4 @@ Mortus has four modules:
  The Listener is divided into two streams: the TCPListener and the UDPListener. Their output pool is the input pool of the Interrogator stream, and the Interrogator's output pool is, in turn, the input pool of the Archiver stream.\
 This allows the modules to process all incoming packets on the ports without delay, without interfering with each other.
 
-Narrator uses Flask to create a web interface that takes data from the Archiver database, and then analyzes and visualizes it.
+Narrator uses **Flask** to create a web interface that takes data from the Archiver database, and then analyzes and visualizes it.
